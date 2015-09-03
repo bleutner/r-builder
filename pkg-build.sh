@@ -220,6 +220,17 @@ RInstall() {
     Rscript -e 'install.packages(commandArgs(TRUE), repos="'"${CRAN}"'")' "$@"
 }
 
+RInstallOld() {
+    if [[ "" == "$*" ]]; then
+        >&2 echo "No arguments to r_install_old"
+        exit 1
+    fi
+
+    >&2 echo "Installing R package(s): $@"
+    Rscript -e 'library(devtools); library(methods); install.version(commandArgs(TRUE), repos="'"${CRAN}"'")' "$@"
+}
+
+
 BiocInstall() {
     if [[ "" == "$*" ]]; then
         >&2 echo "No arguments to bioc_install"
@@ -232,7 +243,6 @@ BiocInstall() {
 
 InstallGithub() {
     EnsureDevtools
-
     >&2 echo "Installing GitHub packages: $@"
     # Install the package.
     Rscript -e 'library(devtools); library(methods); options(repos=c(CRAN="'"${CRAN}"'")); install_github(commandArgs(TRUE), build_vignettes = FALSE)' "$@"
@@ -379,6 +389,11 @@ case $COMMAND in
     "install_dpkgcurl"|"dpkgcurl_install")
         DpkgCurlInstall "$@"
         ;;
+    ##    
+    ## Install an old package
+        "install_r_old")
+        RInstallOld "$@"
+        ;;    
     ##
     ## Install an R dependency from CRAN
     "install_r"|"r_install")
