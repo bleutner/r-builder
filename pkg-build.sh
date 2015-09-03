@@ -227,7 +227,7 @@ RInstallOld() {
     fi
 
     >&2 echo "Installing R package(s): $@"
-    Rscript -e 'library(devtools); library(methods); install_version(commandArgs(TRUE), repos="'"${CRAN}"'")' "$@"
+    Rscript -e 'library(devtools); library(methods); install_version(commandArgs(TRUE)[1], commandArgs(TRUE)[2], repos="'"${CRAN}"'")' "$@"
 }
 
 
