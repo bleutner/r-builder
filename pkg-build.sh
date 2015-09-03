@@ -240,7 +240,7 @@ InstallGithub() {
 
 InstallDeps() {
     EnsureDevtools
-    Rscript -e 'library(devtools); library(methods); options(repos=c(CRAN="'"${CRAN}"'")); install_deps(dependencies = TRUE)'
+    Rscript -e 'library(devtools); library(methods); options(repos=c(CRAN="'"${CRAN}"'"));  update(dev_package_deps(dependencies = c("Depends", "Imports", "Suggests", "LinkingTo")))'
 }
 
 InstallBiocDeps() {
