@@ -314,7 +314,7 @@ RunCheck() {
     FILE=$(ls -1t *.tar.gz | head -n 1)
 
     >&2 echo "Testing with: R CMD check \"${FILE}\" ${R_CHECK_ARGS}"
-    _R_CHECK_CRAN_INCOMING_=${_R_CHECK_CRAN_INCOMING_:-FALSE}
+    _R_CHECK_CRAN_INCOMING_=${_R_CHECK_CRAN_INCOMING_:-TRUE}
     if [[ "$_R_CHECK_CRAN_INCOMING_" == "FALSE" ]]; then
         >&2 echo "(CRAN incoming checks are off)"
     fi
