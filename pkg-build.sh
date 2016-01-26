@@ -210,6 +210,16 @@ DpkgCurlInstall() {
     done
 }
 
+RInstallLocal() {
+    if [[ "" == "$*" ]]; then
+        >&2 echo "No arguments to r_install"
+        exit 1
+    fi
+
+    >&2 echo "Installing local R package(s): $@"
+    Rscript -e 'install.packages(commandArgs(TRUE), repos=NULL)' "$@"
+}
+
 RInstall() {
     if [[ "" == "$*" ]]; then
         >&2 echo "No arguments to r_install"
@@ -389,6 +399,11 @@ case $COMMAND in
     ## Install a binary deb package via a curl call and local dpkg -i
     "install_dpkgcurl"|"dpkgcurl_install")
         DpkgCurlInstall "$@"
+        ;;
+    ##
+    ## Install an R dependency from local file
+    "install_r_local"|"r_install_local")
+        RInstallLocal "$@"
         ;;
     ##
     ## Install an R dependency from CRAN
