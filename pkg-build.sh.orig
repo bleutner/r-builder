@@ -210,18 +210,6 @@ DpkgCurlInstall() {
     done
 }
 
-RInstallLocal() { 
-    >&2 echo "Start Installing local R package(s): $@"
-   
-    if [[ "" == "$*" ]]; then
-        >&2 echo "No arguments to r_install"
-        exit 1
-    fi
-
-    >&2 echo "Installing local R package(s): $@"
-    Rscript -e 'install.packages(commandArgs(TRUE), repos=NULL)' "$@"
-}
-
 RInstall() {
     if [[ "" == "$*" ]]; then
         >&2 echo "No arguments to r_install"
@@ -232,16 +220,29 @@ RInstall() {
     Rscript -e 'install.packages(commandArgs(TRUE), repos="'"${CRAN}"'")' "$@"
 }
 
+<<<<<<< HEAD
+RInstallOld() {
+    if [[ "" == "$*" ]]; then
+        >&2 echo "No arguments to r_install_old"
+        exit 1
+    fi
+
+=======
 RInstallVersion() {
     EnsureDevtools
     if [[ "" == "$*" ]]; then
         >&2 echo "No arguments to r_install_version"
         exit 1
     fi
+>>>>>>> upstream/master
     >&2 echo "Installing R package(s): $@"
     Rscript -e 'library(devtools); library(methods); install_version(commandArgs(TRUE)[1], commandArgs(TRUE)[2], repos="'"${CRAN}"'")' "$@"
 }
 
+<<<<<<< HEAD
+
+=======
+>>>>>>> upstream/master
 BiocInstall() {
     if [[ "" == "$*" ]]; then
         >&2 echo "No arguments to bioc_install"
@@ -254,7 +255,6 @@ BiocInstall() {
 
 InstallGithub() {
     EnsureDevtools
-
     >&2 echo "Installing GitHub packages: $@"
     # Install the package.
     Rscript -e 'library(devtools); library(methods); options(repos=c(CRAN="'"${CRAN}"'")); install_github(commandArgs(TRUE), build_vignettes = FALSE)' "$@"
@@ -262,7 +262,7 @@ InstallGithub() {
 
 InstallDeps() {
     EnsureDevtools
-    Rscript -e 'library(devtools); library(methods); options(repos=c(CRAN="'"${CRAN}"'")); install_deps(dependencies = TRUE)'
+    Rscript -e 'library(devtools); library(methods); options(repos=c(CRAN="'"${CRAN}"'"));  update(dev_package_deps(dependencies = c("Depends", "Imports", "Suggests", "LinkingTo")))'
 }
 
 InstallBiocDeps() {
@@ -327,7 +327,7 @@ RunCheck() {
     FILE=$(ls -1t *.tar.gz | head -n 1)
 
     >&2 echo "Testing with: R CMD check \"${FILE}\" ${R_CHECK_ARGS}"
-    _R_CHECK_CRAN_INCOMING_=${_R_CHECK_CRAN_INCOMING_:-FALSE}
+    _R_CHECK_CRAN_INCOMING_=${_R_CHECK_CRAN_INCOMING_:-TRUE}
     if [[ "$_R_CHECK_CRAN_INCOMING_" == "FALSE" ]]; then
         >&2 echo "(CRAN incoming checks are off)"
     fi
@@ -402,11 +402,11 @@ case $COMMAND in
     "install_dpkgcurl"|"dpkgcurl_install")
         DpkgCurlInstall "$@"
         ;;
-    ##
-    ## Install an R dependency from local file
-    "install_r_local"|"r_install_local")
-        RInstallLocal "$@"
-        ;;
+    ##    
+    ## Install an old package
+        "install_r_old")
+        RInstallOld "$@"
+        ;;    
     ##
     ## Install an R dependency from CRAN
     "install_r"|"r_install")
