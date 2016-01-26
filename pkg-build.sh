@@ -22,11 +22,11 @@ RVERSIONS_URL="http://rversions.r-pkg.org/r-"
 
 ## Detect CI
 if [ "$DRONE" == "true" ]; then
-    export CI="drone"
+    export CI_NAME="drone"
 elif [ "$SEMAPHORE" == "true" ]; then
-    export CI="semaphore"
+    export CI_NAME="semaphore"
 elif [ "$TRAVIS" == "true" ]; then
-    export CI="travis"
+    export CI_NAME="travis"
 else
     >&2 echo "Unknown CI"
     exit 1
@@ -92,12 +92,12 @@ BootstrapLinux() {
 	mkdir -p ${BINDIR}
 	chown $(id -un):$(id -gn) ${BINDIR}
 	cd ${BINDIR}
-	if ! curl --fail -s -OL ${RBUILDER}/archive/${CI}-${RVERSION}.zip; then
+	if ! curl --fail -s -OL ${RBUILDER}/archive/${CI_NAME}-${RVERSION}.zip; then
 	    >&2 echo "This R version is not available for this CI"
 	    exit 1
 	fi
-	unzip -q ${CI}-${RVERSION}.zip
-	mv r-builder-${CI}-${RVERSION}/R-${RVERSION} .
+	unzip -q ${CI_NAME}-${RVERSION}.zip
+	mv r-builder-${CI_NAME}-${RVERSION}/R-${RVERSION} .
     )
 
     # Install an R development environment. qpdf is also needed for
@@ -106,7 +106,7 @@ BootstrapLinux() {
     Retry sudo apt-get -y update -qq
     Retry sudo apt-get -y install --no-install-recommends qpdf gfortran
 
-    if [ $CI = "travis" -a $RVERSION = "devel" ]; then
+    if [ $CI_NAME = "travis" ]; then
 	sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 7635B973
 	sudo add-apt-repository -y ppa:ubuntu-lxc/buildd-backports
 	sudo apt-get update
@@ -220,16 +220,15 @@ RInstall() {
     Rscript -e 'install.packages(commandArgs(TRUE), repos="'"${CRAN}"'")' "$@"
 }
 
-RInstallOld() {
+RInstallVersion() {
+    EnsureDevtools
     if [[ "" == "$*" ]]; then
-        >&2 echo "No arguments to r_install_old"
+        >&2 echo "No arguments to r_install_version"
         exit 1
     fi
-
     >&2 echo "Installing R package(s): $@"
     Rscript -e 'library(devtools); library(methods); install_version(commandArgs(TRUE)[1], commandArgs(TRUE)[2], repos="'"${CRAN}"'")' "$@"
 }
-
 
 BiocInstall() {
     if [[ "" == "$*" ]]; then
@@ -243,6 +242,7 @@ BiocInstall() {
 
 InstallGithub() {
     EnsureDevtools
+
     >&2 echo "Installing GitHub packages: $@"
     # Install the package.
     Rscript -e 'library(devtools); library(methods); options(repos=c(CRAN="'"${CRAN}"'")); install_github(commandArgs(TRUE), build_vignettes = FALSE)' "$@"
@@ -250,7 +250,7 @@ InstallGithub() {
 
 InstallDeps() {
     EnsureDevtools
-    Rscript -e 'library(devtools); library(methods); options(repos=c(CRAN="'"${CRAN}"'"));  update(dev_package_deps(dependencies = c("Depends", "Imports", "Suggests", "LinkingTo")))'
+    Rscript -e 'library(devtools); library(methods); options(repos=c(CRAN="'"${CRAN}"'")); install_deps(dependencies = TRUE)'
 }
 
 InstallBiocDeps() {
@@ -260,6 +260,7 @@ InstallBiocDeps() {
 
 DumpSysinfo() {
     >&2 echo "Dumping system information."
+    EnsureDevtools
     R -e '.libPaths(); options(width = 90) ; devtools::session_info(); installed.packages()'
 }
 
@@ -314,7 +315,7 @@ RunCheck() {
     FILE=$(ls -1t *.tar.gz | head -n 1)
 
     >&2 echo "Testing with: R CMD check \"${FILE}\" ${R_CHECK_ARGS}"
-    _R_CHECK_CRAN_INCOMING_=${_R_CHECK_CRAN_INCOMING_:-TRUE}
+    _R_CHECK_CRAN_INCOMING_=${_R_CHECK_CRAN_INCOMING_:-FALSE}
     if [[ "$_R_CHECK_CRAN_INCOMING_" == "FALSE" ]]; then
         >&2 echo "(CRAN incoming checks are off)"
     fi
@@ -389,15 +390,15 @@ case $COMMAND in
     "install_dpkgcurl"|"dpkgcurl_install")
         DpkgCurlInstall "$@"
         ;;
-    ##    
-    ## Install an old package
-        "install_r_old")
-        RInstallOld "$@"
-        ;;    
     ##
     ## Install an R dependency from CRAN
     "install_r"|"r_install")
         RInstall "$@"
+        ;;
+    ##
+    ## Install a specific version of an R dependency from CRAN 
+    "r_install_version"|"install_r_version")
+        RInstallVersion "$@"
         ;;
     ##
     ## Install an R dependency from Bioconductor
