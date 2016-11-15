@@ -282,7 +282,7 @@ InstallBiocDeps() {
 
 DumpSysinfo() {
     >&2 echo "Dumping system information."
-    R -e '.libPaths(); options(width = 90) ; sessionInfo(); installed.packages()'
+    R -e '.libPaths(); options(width = 90) ; sessionInfo(); installed.packages()[,c("Version","Depends")]'
 }
 
 DumpByPattern() {
@@ -468,6 +468,7 @@ case $COMMAND in
         RunTests
         ;;
     ##
+    
     ## Dump information about installed packages
     "dump_sysinfo")
         DumpSysinfo
