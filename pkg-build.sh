@@ -5,7 +5,7 @@
 
 set -e
 # Comment out this line for quieter output:
-set -x
+#set -x
 
 RBUILDER=https://github.com/gaborcsardi/r-builder
 CRAN=${CRAN:-"http://cran.rstudio.com"}
